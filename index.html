@@ -1,36 +1,176 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#111318">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Task Sorter">
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" href="./icons/icon-192.png">
-  <link rel="icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css">
-  <title>Task Sorter</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111318">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Task Sorter">
+<title>Task Sorter</title>
+<style>
+:root{--bg:#111318;--panel:#1b1f27;--panel2:#252b36;--text:#f4f6fa;--muted:#a0a8b8;--accent:#667cff;--danger:#e45a67;--ok:#45c989;--border:#ffffff12}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+body{min-height:100dvh}.app{max-width:1100px;margin:auto;padding:max(18px,env(safe-area-inset-top)) 14px max(24px,env(safe-area-inset-bottom))}
+h1,h2,h3{margin-top:0}.top{display:flex;gap:10px;align-items:center;margin-bottom:18px}.top h1{font-size:26px;margin:0}.spacer{flex:1}
+.btn{border:0;border-radius:13px;background:var(--accent);color:white;padding:12px 15px;font-weight:700;min-height:44px}.secondary{background:var(--panel2)}.danger{background:var(--danger)}.ghost{background:transparent;border:1px solid var(--border)}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:20px;text-align:left;color:var(--text);min-height:130px}.card strong{display:block;font-size:20px;margin-bottom:8px}.card span{color:var(--muted);line-height:1.4}.count{margin-top:14px;color:#9eacff;font-weight:800}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:18px}.field{margin-bottom:14px}.field label{display:block;color:var(--muted);font-size:14px;margin-bottom:7px}
+input,textarea,select{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:13px;color:var(--text);padding:13px;font:inherit;outline:none}textarea{min-height:110px;resize:vertical}
+.capture{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}.listbox{max-height:65dvh;overflow:auto}.item{display:grid;grid-template-columns:auto 1fr auto;gap:9px;padding:11px 5px;border-bottom:1px solid var(--border);align-items:start}.num{color:var(--muted)}.title{font-weight:800}.comment{color:var(--muted);font-size:13px;margin-top:4px;white-space:pre-wrap}.x{width:34px;height:34px;border:0;border-radius:10px;background:#e45a6726;color:#ff7783;font-weight:900;font-size:18px}
+.folders{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.folder{position:relative;background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:16px;color:var(--text);text-align:left;min-height:94px;overflow:hidden}.bar{position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--c)}.folder strong{display:block;margin-left:4px;font-size:17px}.folder small{display:block;margin-left:4px;margin-top:8px;color:var(--muted)}
+.sort{display:grid;grid-template-columns:.9fr 1.1fr;gap:14px}.taskbig{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:22px}.taskbig h2{font-size:34px;line-height:1.05;word-break:break-word}.muted{color:var(--muted)}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+.taskrow{padding:14px;border-bottom:1px solid var(--border);background:var(--panel);cursor:pointer}.taskrow.active{background:var(--panel2)}
+.details{margin-top:12px}.empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:15px}
+.modal{position:fixed;inset:0;background:#000a;display:grid;place-items:center;padding:16px;z-index:99}.modalbox{max-width:440px;width:100%;background:var(--panel);border-radius:18px;padding:20px;border:1px solid var(--border)}
+@media(max-width:800px){.capture,.sort{grid-template-columns:1fr}.folders{grid-template-columns:1fr 1fr}.listbox{max-height:420px}}
+@media(max-width:520px){.menu{grid-template-columns:1fr}.folders{grid-template-columns:1fr}.card{min-height:110px}.taskbig h2{font-size:28px}}
+</style>
 </head>
 <body>
-  <div id="app"></div>
+<div id="app" class="app"></div>
 
-  <div id="toast" class="toast" aria-live="polite"></div>
+<script>
+const KEY="taskSorterDataV4";
+let data=load();
+let selectedFolder=null, selectedTask=null, currentSort=null;
 
-  <template id="confirm-template">
-    <div class="modal-backdrop">
-      <div class="modal-card">
-        <h3 id="confirm-title">Подтверждение</h3>
-        <p id="confirm-text"></p>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" id="confirm-cancel">Отмена</button>
-          <button class="btn btn-danger" id="confirm-ok">Удалить</button>
-        </div>
-      </div>
+function load(){
+  try{
+    const x=JSON.parse(localStorage.getItem(KEY));
+    if(x && Array.isArray(x.folders)&&Array.isArray(x.tasks)) return x;
+  }catch(e){}
+  return {folders:[],tasks:[]};
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+function esc(s=""){return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
+function unsorted(){return data.tasks.filter(t=>!t.folderId)}
+function byFolder(fid){return data.tasks.filter(t=>t.folderId===fid)}
+function fById(id){return data.folders.find(f=>f.id===id)}
+function tById(id){return data.tasks.find(t=>t.id===id)}
+function top(title, back=true){return `<div class="top">${back?`<button class="btn secondary" onclick="menu()">← Назад</button>`:""}<h1>${esc(title)}</h1><div class="spacer"></div></div>`}
+function toast(msg){alert(msg)}
+
+function menu(){
+  app.innerHTML=`
+    <div style="padding:12px 2px 20px"><div class="muted">TASK SORTER</div><h1 style="font-size:40px;margin:4px 0">Разгрузи голову.<br>Потом рассортируй.</h1></div>
+    <div class="menu">
+      <button class="card" onclick="database()"><strong>База данных</strong><span>Папки и распределённые задачи.</span><div class="count">${data.folders.length} папок</div></button>
+      <button class="card" onclick="createFolder()"><strong>Создать папку</strong><span>Название, описание и цвет.</span></button>
+      <button class="card" onclick="capture()"><strong>Создание задач</strong><span>Задача → Enter → комментарий → Enter → следующая.</span><div class="count">${unsorted().length} неразобранных</div></button>
+      <button class="card" onclick="sortTasks()"><strong>Сортировка задач</strong><span>Одна задача. Один тап по папке — следующая.</span><div class="count">${unsorted().length?`Разобрать: ${unsorted().length}`:"Всё разобрано"}</div></button>
     </div>
-  </template>
+    <div class="actions"><button class="btn ghost" onclick="backup()">Резервная копия</button></div>`;
+}
 
-  <script src="./app.js"></script>
+function createFolder(){
+  app.innerHTML=`${top("Новая папка")}<div class="panel">
+    <div class="field"><label>Название</label><input id="fn" placeholder="Например: Работа"></div>
+    <div class="field"><label>Описание</label><textarea id="fd" placeholder="Что находится в папке"></textarea></div>
+    <div class="field"><label>Цвет</label><input id="fc" type="color" value="#667cff" style="height:50px;padding:5px"></div>
+    <button class="btn" onclick="saveFolder()">Создать папку</button></div>`;
+  setTimeout(()=>document.getElementById("fn").focus(),50);
+}
+function saveFolder(){
+  const n=fn.value.trim(); if(!n)return toast("Введите название");
+  data.folders.push({id:id(),name:n,description:fd.value.trim(),color:fc.value});
+  save(); menu();
+}
+
+function capture(){
+  app.innerHTML=`${top("Создание задач")}<div class="capture">
+    <div class="panel">
+      <div class="muted" style="margin-bottom:14px">Название → Enter. Комментарий → Enter. Shift+Enter = перенос строки.</div>
+      <div class="field"><label>Введите задачу</label><input id="ct" placeholder="Название задачи"></div>
+      <div class="field"><label>Введите комментарий</label><textarea id="cc" placeholder="Подробности"></textarea></div>
+      <div class="actions"><button class="btn" onclick="addTask()">Добавить</button><button class="btn secondary" onclick="ct.value='';cc.value='';ct.focus()">Очистить</button></div>
+    </div>
+    <div class="panel"><h3>Неразобранные задачи</h3><div id="ul" class="listbox"></div></div>
+  </div>`;
+  ct.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault(); if(ct.value.trim()) cc.focus()}});
+  cc.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();addTask()}});
+  renderU(); ct.focus();
+}
+function addTask(){
+  const title=ct.value.trim(); if(!title)return toast("Введите название задачи");
+  data.tasks.push({id:id(),title,comment:cc.value.trim(),folderId:null,createdAt:new Date().toISOString()});
+  save(); ct.value="";cc.value="";renderU();ct.focus();
+}
+function renderU(){
+  const el=document.getElementById("ul"); if(!el)return;
+  const arr=unsorted();
+  el.innerHTML=arr.length?arr.map((t,i)=>`<div class="item"><div class="num">${i+1}.</div><div><div class="title">${esc(t.title)}</div>${t.comment?`<div class="comment">${esc(t.comment)}</div>`:""}</div><button class="x" onclick="delUn('${t.id}')">×</button></div>`).join(""):`<div class="empty">Пока пусто</div>`;
+  el.scrollTop=el.scrollHeight;
+}
+function delUn(tid){const t=tById(tid);if(!t)return;if(confirm(`Удалить задачу «${t.title}»?`)){data.tasks=data.tasks.filter(x=>x.id!==tid);save();renderU()}}
+
+function sortTasks(){
+  if(!data.folders.length){alert("Сначала создай хотя бы одну папку.");return createFolder()}
+  const arr=unsorted(); if(!arr.length){app.innerHTML=`${top("Сортировка задач")}<div class="empty">Все задачи распределены.</div>`;return}
+  let t=tById(currentSort); if(!t||t.folderId)t=arr[0]; currentSort=t.id;
+  app.innerHTML=`${top("Сортировка задач")}<div class="sort">
+    <div class="taskbig"><div class="muted">Осталось: ${arr.length}</div><h2>${esc(t.title)}</h2><div style="white-space:pre-wrap">${t.comment?esc(t.comment):'<span class="muted">Без комментария</span>'}</div>
+      <div class="actions"><button class="btn secondary" onclick="skipSort()">Пропустить</button><button class="btn danger" onclick="deleteSort()">Удалить</button></div>
+    </div>
+    <div><h3>Выбери папку</h3><div class="folders">${data.folders.map(f=>`<button class="folder" style="--c:${f.color}" onclick="putSort('${f.id}')"><div class="bar"></div><strong>${esc(f.name)}</strong><small>${byFolder(f.id).length} задач</small></button>`).join("")}</div></div>
+  </div>`;
+}
+function putSort(fid){const t=tById(currentSort);if(!t)return sortTasks();t.folderId=fid;save();currentSort=null;sortTasks()}
+function skipSort(){const arr=unsorted();if(arr.length<2)return;const i=arr.findIndex(t=>t.id===currentSort);currentSort=arr[(i+1)%arr.length].id;sortTasks()}
+function deleteSort(){const t=tById(currentSort);if(!t)return;if(confirm(`Удалить «${t.title}»?`)){data.tasks=data.tasks.filter(x=>x.id!==t.id);save();currentSort=null;sortTasks()}}
+
+function database(){
+  selectedFolder=null;
+  app.innerHTML=`${top("База данных")}<div class="folders">${data.folders.length?data.folders.map(f=>`<button class="folder" style="--c:${f.color}" onclick="folderView('${f.id}')"><div class="bar"></div><strong>${esc(f.name)}</strong><small>${byFolder(f.id).length} задач</small></button>`).join(""):`<div class="empty">Папок пока нет</div>`}</div>`;
+}
+function folderView(fid){
+  const f=fById(fid); if(!f)return database(); selectedFolder=fid; selectedTask=null;
+  const arr=byFolder(fid);
+  app.innerHTML=`<div class="top"><button class="btn secondary" onclick="database()">← База</button><h1>${esc(f.name)}</h1><div class="spacer"></div><button class="btn danger" onclick="deleteFolder('${f.id}')">Удалить папку</button></div>
+    <div class="panel"><div class="muted">${esc(f.description||"Без описания")}</div></div>
+    <div style="margin-top:12px">${arr.length?arr.map(t=>`<div class="taskrow" onclick="taskDetails('${t.id}')"><div class="title">${esc(t.title)}</div><div class="comment">${esc(t.comment||"Без комментария")}</div></div>`).join(""):`<div class="empty">Папка пустая</div>`}</div>
+    <div id="td" class="details"></div>`;
+}
+function taskDetails(tid){
+  const t=tById(tid); if(!t)return; selectedTask=tid;
+  td.innerHTML=`<div class="panel"><h2>${esc(t.title)}</h2><div style="white-space:pre-wrap">${esc(t.comment||"Без комментария")}</div><div class="actions"><button class="btn secondary" onclick="moveTask()">Переместить</button><button class="btn danger" onclick="deleteTask()">Удалить</button></div></div>`;
+}
+function moveTask(){
+  const t=tById(selectedTask);if(!t)return;
+  let opts=`<option value="">Неразобранные</option>`+data.folders.map(f=>`<option value="${f.id}" ${f.id===t.folderId?"selected":""}>${esc(f.name)}</option>`).join("");
+  modal(`<h3>Переместить</h3><select id="mv">${opts}</select><div class="actions"><button class="btn" onclick="doMove()">Переместить</button><button class="btn secondary" onclick="closeModal()">Отмена</button></div>`);
+}
+function doMove(){const t=tById(selectedTask);if(!t)return;t.folderId=document.getElementById("mv").value||null;save();closeModal();folderView(selectedFolder)}
+function deleteTask(){const t=tById(selectedTask);if(!t)return;if(confirm(`Удалить «${t.title}»?`)){data.tasks=data.tasks.filter(x=>x.id!==t.id);save();folderView(selectedFolder)}}
+function deleteFolder(fid){
+  const f=fById(fid);if(!f)return;
+  if(confirm(`Удалить папку «${f.name}»? Задачи вернутся в неразобранные.`)){
+    data.tasks.forEach(t=>{if(t.folderId===fid)t.folderId=null});
+    data.folders=data.folders.filter(x=>x.id!==fid);save();database();
+  }
+}
+
+function backup(){
+  app.innerHTML=`${top("Резервная копия")}<div class="panel">
+    <h3>Экспорт</h3><button class="btn" onclick="exportData()">Скачать JSON</button>
+    <hr style="border-color:var(--border);margin:22px 0">
+    <h3>Импорт</h3><input id="imp" type="file" accept=".json,application/json"><button class="btn danger" style="margin-top:10px" onclick="importData()">Импортировать</button>
+  </div>`;
+}
+function exportData(){
+  const b=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="task-sorter-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
+}
+async function importData(){
+  const f=imp.files[0];if(!f)return alert("Выбери файл");
+  try{const x=JSON.parse(await f.text());if(!Array.isArray(x.folders)||!Array.isArray(x.tasks))throw 0;if(confirm("Заменить текущую базу?")){data=x;save();menu()}}catch(e){alert("Неверный файл")}
+}
+
+function modal(html){document.body.insertAdjacentHTML("beforeend",`<div id="modal" class="modal"><div class="modalbox">${html}</div></div>`)}
+function closeModal(){document.getElementById("modal")?.remove()}
+
+menu();
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js").catch(()=>{})}
+</script>
 </body>
 </html>
