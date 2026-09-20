@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111318">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Task Sorter">
+<title>Task Sorter GTD</title>
+<style>
+:root{
+  --bg:#111318;--panel:#1a1e25;--panel2:#252b36;--text:#f4f6fa;--muted:#9da6b6;
+  --accent:#667cff;--danger:#e45a67;--ok:#45c989;--warn:#f0a64c;--border:#ffffff15
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+body{min-height:100dvh}
+button,input,textarea,select{font:inherit}
+button{-webkit-tap-highlight-color:transparent}
+.app{max-width:1120px;margin:auto;padding:max(16px,env(safe-area-inset-top)) 13px max(26px,env(safe-area-inset-bottom))}
+.top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:16px}
+.top h1{margin:0;font-size:25px}.spacer{flex:1}
+.btn{border:0;border-radius:13px;min-height:44px;padding:12px 15px;background:var(--accent);color:white;font-weight:750}
+.btn:active{transform:scale(.98)}.secondary{background:var(--panel2)}.danger{background:var(--danger)}.ok{background:var(--ok);color:#07150e}.ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.hero{padding:10px 2px 21px}.kicker{font-size:12px;letter-spacing:.12em;color:#a9b2ff;font-weight:800}
+.hero h1{font-size:clamp(35px,7vw,54px);line-height:1.02;letter-spacing:-.05em;margin:6px 0}.hero p,.muted,.small{color:var(--muted)}.small{font-size:13px}
+.menu{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.card{background:linear-gradient(180deg,var(--panel),#161a20);border:1px solid var(--border);border-radius:17px;padding:17px;text-align:left;color:var(--text);min-height:125px}
+.card strong{display:block;font-size:18px;margin-bottom:7px}.card span{display:block;color:var(--muted);font-size:13px;line-height:1.4}.count{margin-top:12px;color:#a4afff;font-weight:800}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:17px;padding:17px}
+.field{margin-bottom:13px}.field label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
+input,textarea,select{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:12px;color:var(--text);padding:12px 13px;outline:none}
+textarea{min-height:105px;resize:vertical}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.capture,.process{display:grid;grid-template-columns:1.05fr .95fr;gap:12px}.listbox{max-height:65dvh;overflow:auto}
+.item{display:grid;grid-template-columns:auto 1fr auto;gap:8px;padding:11px 4px;border-bottom:1px solid var(--border);align-items:start}.num{color:var(--muted);min-width:28px;text-align:right}.title{font-weight:800;word-break:break-word}.comment{color:var(--muted);font-size:13px;margin-top:4px;white-space:pre-wrap;line-height:1.4}
+.x{width:34px;height:34px;border:0;border-radius:10px;background:#e45a6726;color:#ff7984;font-weight:900;font-size:18px}
+.empty{padding:28px 16px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:15px}
+.taskbig{background:var(--panel);border:1px solid var(--border);border-radius:17px;padding:20px;position:sticky;top:10px}.taskbig h2{font-size:clamp(28px,5vw,42px);line-height:1.05;letter-spacing:-.04em;margin:8px 0 14px}
+.gtdgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.gtdbtn{background:var(--panel);border:1px solid var(--border);border-radius:14px;color:var(--text);padding:14px;text-align:left}.gtdbtn strong{display:block}.gtdbtn span{display:block;color:var(--muted);font-size:12px;margin-top:5px}
+.tasklist{display:flex;flex-direction:column;gap:7px}.taskrow{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:13px}.meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.chip{border-radius:999px;background:var(--panel2);color:var(--muted);font-size:11px;padding:5px 8px}.chip.today{color:#bfc7ff}.chip.wait{color:#ffd2a0}
+.folders,.projects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.folder,.project{background:var(--panel);border:1px solid var(--border);border-radius:15px;color:var(--text);padding:15px;text-align:left;position:relative;overflow:hidden}.bar{position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--c)}.folder strong{margin-left:4px}.folder small{display:block;margin:7px 0 0 4px;color:var(--muted)}
+.project h3{margin:0 0 6px}.project p{color:var(--muted);font-size:13px}
+.section{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0 10px}.section h2{margin:0;font-size:20px}
+.calhead{display:flex;justify-content:space-between;align-items:center;gap:8px}.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px}.dow{text-align:center;color:var(--muted);font-size:11px}
+.day{min-height:65px;background:var(--panel);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:6px;text-align:left}.day.other{opacity:.35}.day.sel{border-color:var(--accent)}.day.today{color:#aab5ff;font-weight:900}.dots{display:flex;gap:3px;flex-wrap:wrap;margin-top:8px}.dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.modal{position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:14px;z-index:100}.modalbox{width:min(520px,100%);max-height:90dvh;overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:18px}
+hr{border:0;border-top:1px solid var(--border);margin:18px 0}
+.statusbar{margin-top:12px;text-align:center;font-size:12px;color:var(--muted)}.offline{color:#59d49a}
+@media(max-width:850px){.menu{grid-template-columns:repeat(2,1fr)}.capture,.process{grid-template-columns:1fr}.taskbig{position:static}}
+@media(max-width:560px){.menu,.gtdgrid,.folders,.projects{grid-template-columns:1fr}.card{min-height:103px}.calendar{gap:3px}.day{min-height:56px;padding:5px}}
+</style>
+</head>
+<body>
+<div id="app" class="app"></div>
+<script>
+const KEY="TaskSorterFull_v1";
+const MIGRATE_KEYS=["taskSorterGTD_FRESH_v1","taskSorterGTD_v1","taskSorterDataV4","taskSorterDataV3","taskSorterDataV2"];
+let data=loadData();
+let currentInbox=null;
+let calMonth=new Date();
+let selectedDate=dateKey(new Date());
+
+function byId(id){return document.getElementById(id)}
+function uid(){return Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,9)}
+function blank(){return{version:1,folders:[],projects:[],tasks:[]}}
+function normalize(x){
+  x=x||blank();
+  x.folders=Array.isArray(x.folders)?x.folders:[];
+  x.projects=Array.isArray(x.projects)?x.projects:[];
+  x.tasks=Array.isArray(x.tasks)?x.tasks:[];
+  x.tasks=x.tasks.map(t=>({
+    id:t.id||uid(),title:t.title||"",comment:t.comment||"",
+    folderId:t.folderId||null,projectId:t.projectId||null,
+    gtd:t.gtd||(!t.folderId?"inbox":"next"),
+    dueDate:t.dueDate||"",today:!!t.today,delegatedTo:t.delegatedTo||"",
+    completed:!!t.completed,createdAt:t.createdAt||new Date().toISOString()
+  }));
+  return x;
+}
+function loadData(){
+  try{
+    const x=JSON.parse(localStorage.getItem(KEY));
+    if(x)return normalize(x);
+  }catch(e){}
+  for(const k of MIGRATE_KEYS){
+    try{
+      const old=JSON.parse(localStorage.getItem(k));
+      if(old){
+        const x=normalize(old);
+        localStorage.setItem(KEY,JSON.stringify(x));
+        return x;
+      }
+    }catch(e){}
+  }
+  return blank();
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+function esc(s=""){return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
+function dateKey(d){const z=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`}
+function todayKey(){return dateKey(new Date())}
+function fmt(s){if(!s)return"";const a=s.split("-");return `${a[2]}.${a[1]}.${a[0]}`}
+function task(id){return data.tasks.find(x=>x.id===id)}
+function project(id){return data.projects.find(x=>x.id===id)}
+function folder(id){return data.folders.find(x=>x.id===id)}
+function inbox(){return data.tasks.filter(x=>!x.completed&&x.gtd==="inbox")}
+function nextActions(){return data.tasks.filter(x=>!x.completed&&x.gtd==="next")}
+function waiting(){return data.tasks.filter(x=>!x.completed&&x.gtd==="waiting")}
+function someday(){return data.tasks.filter(x=>!x.completed&&x.gtd==="someday")}
+function reference(){return data.tasks.filter(x=>!x.completed&&x.gtd==="reference")}
+function today(){return data.tasks.filter(x=>!x.completed&&(x.today||x.dueDate===todayKey()))}
+function projectTasks(id){return data.tasks.filter(x=>!x.completed&&x.projectId===id)}
+function folderTasks(id){return data.tasks.filter(x=>!x.completed&&x.folderId===id)}
+function setApp(s){byId("app").innerHTML=s}
+function top(title,back="menu",extra=""){return `<div class="top">${back?`<button class="btn secondary" onclick="${back}()">← Назад</button>`:""}<h1>${esc(title)}</h1><div class="spacer"></div>${extra}</div>`}
+function gtdLabel(g){return({inbox:"Входящие",next:"Следующее действие",waiting:"Поручено / ожидаю",calendar:"Календарь",someday:"Когда-нибудь",reference:"Хранилище"})[g]||g}
+function modal(content){document.body.insertAdjacentHTML("beforeend",`<div id="modal" class="modal"><div class="modalbox">${content}</div></div>`)}
+function closeModal(){byId("modal")?.remove()}
+
+function taskRow(x){
+  const chips=[];
+  if(x.today||x.dueDate===todayKey())chips.push(`<span class="chip today">Сегодня</span>`);
+  if(x.dueDate)chips.push(`<span class="chip">📅 ${fmt(x.dueDate)}</span>`);
+  if(x.projectId&&project(x.projectId))chips.push(`<span class="chip">Проект: ${esc(project(x.projectId).name)}</span>`);
+  if(x.folderId&&folder(x.folderId))chips.push(`<span class="chip">${esc(folder(x.folderId).name)}</span>`);
+  if(x.gtd==="waiting")chips.push(`<span class="chip wait">Ожидаю${x.delegatedTo?": "+esc(x.delegatedTo):""}</span>`);
+  return `<div class="taskrow" onclick="editTask('${x.id}')"><div class="title">${esc(x.title)}</div>${x.comment?`<div class="comment">${esc(x.comment)}</div>`:""}<div class="meta">${chips.join("")}</div></div>`;
+}
+
+function menu(){
+  currentInbox=null;
+  setApp(`<div class="hero"><div class="kicker">TASK SORTER · GTD</div><h1>Собрал → уточнил → сделал.</h1><p>Офлайн-система задач на iPhone.</p></div>
+  <div class="menu">
+    <button class="card" onclick="capture()"><strong>Быстрый ввод</strong><span>Задача → Enter → комментарий → Enter → следующая.</span><div class="count">${inbox().length} во входящих</div></button>
+    <button class="card" onclick="processInbox()"><strong>Разобрать входящие</strong><span>По одной задаче: действие, проект, поручение, календарь.</span><div class="count">${inbox().length?`Разобрать: ${inbox().length}`:"Пусто"}</div></button>
+    <button class="card" onclick="simpleList('Сегодня',today())"><strong>Сегодня</strong><span>Задачи, актуальные сегодня.</span><div class="count">${today().length}</div></button>
+    <button class="card" onclick="simpleList('Следующие действия',nextActions())"><strong>Следующие действия</strong><span>Конкретные шаги, которые можно делать.</span><div class="count">${nextActions().length}</div></button>
+    <button class="card" onclick="projectsView()"><strong>Проекты</strong><span>Результаты, требующие нескольких действий.</span><div class="count">${data.projects.filter(x=>x.status!=="done").length}</div></button>
+    <button class="card" onclick="simpleList('Поручено / ожидаю',waiting())"><strong>Поручено / ожидаю</strong><span>То, что передано другим.</span><div class="count">${waiting().length}</div></button>
+    <button class="card" onclick="calendarView()"><strong>Календарь</strong><span>Задачи, жёстко привязанные к дате.</span></button>
+    <button class="card" onclick="simpleList('Когда-нибудь',someday())"><strong>Когда-нибудь</strong><span>Идеи без обязательства сейчас.</span><div class="count">${someday().length}</div></button>
+    <button class="card" onclick="simpleList('Хранилище',reference())"><strong>Хранилище</strong><span>Справочные материалы и заметки.</span><div class="count">${reference().length}</div></button>
+    <button class="card" onclick="allTasks()"><strong>Все задачи</strong><span>Полная база, поиск и редактирование.</span><div class="count">${data.tasks.filter(x=>!x.completed).length}</div></button>
+    <button class="card" onclick="foldersView()"><strong>Папки / контексты</strong><span>Работа, покупки, 3D, дом и другие группы.</span><div class="count">${data.folders.length}</div></button>
+    <button class="card" onclick="backupView()"><strong>Резервная копия</strong><span>Экспорт и восстановление базы.</span></button>
+  </div>
+  <div id="offlineStatus" class="statusbar">Проверка офлайн-режима…</div>`);
+  updateOfflineStatus();
+}
+
+function capture(){
+  setApp(`${top("Быстрый ввод")}<div class="capture">
+    <div class="panel">
+      <div class="muted" style="margin-bottom:12px">Название → Enter. Комментарий → Enter. Shift+Enter = перенос строки.</div>
+      <div class="field"><label>Введите задачу</label><input id="capTitle" autocomplete="off"></div>
+      <div class="field"><label>Комментарий</label><textarea id="capComment"></textarea></div>
+      <div class="actions"><button class="btn" onclick="addCaptured()">Добавить</button><button class="btn secondary" onclick="byId('capTitle').value='';byId('capComment').value='';byId('capTitle').focus()">Очистить</button></div>
+    </div>
+    <div class="panel"><h3>Входящие</h3><div id="capList" class="listbox"></div></div>
+  </div>`);
+  byId("capTitle").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();if(byId("capTitle").value.trim())byId("capComment").focus()}});
+  byId("capComment").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();addCaptured()}});
+  renderCapture();byId("capTitle").focus();
+}
+function addCaptured(){
+  const title=byId("capTitle").value.trim();if(!title)return alert("Введите название задачи.");
+  data.tasks.push({id:uid(),title,comment:byId("capComment").value.trim(),folderId:null,projectId:null,gtd:"inbox",dueDate:"",today:false,delegatedTo:"",completed:false,createdAt:new Date().toISOString()});
+  save();byId("capTitle").value="";byId("capComment").value="";renderCapture();byId("capTitle").focus();
+}
+function renderCapture(){
+  const a=inbox(),box=byId("capList");if(!box)return;
+  box.innerHTML=a.length?a.map((x,i)=>`<div class="item"><div class="num">${i+1}.</div><div><div class="title">${esc(x.title)}</div>${x.comment?`<div class="comment">${esc(x.comment)}</div>`:""}</div><button class="x" onclick="deleteInbox('${x.id}')">×</button></div>`).join(""):`<div class="empty">Входящие пусты.</div>`;
+  box.scrollTop=box.scrollHeight;
+}
+function deleteInbox(id){const x=task(id);if(x&&confirm(`Удалить «${x.title}»?`)){data.tasks=data.tasks.filter(q=>q.id!==id);save();renderCapture()}}
+
+function processInbox(){
+  const a=inbox();
+  if(!a.length){setApp(`${top("Разобрать входящие")}<div class="empty">Входящие пусты. Всё разобрано.</div>`);return}
+  let x=task(currentInbox);if(!x||x.gtd!=="inbox")x=a[0];currentInbox=x.id;
+  setApp(`${top("Разобрать входящие")}<div class="process">
+    <div class="taskbig"><div class="small">Осталось: ${a.length}</div><h2>${esc(x.title)}</h2><div class="comment">${esc(x.comment||"Без комментария")}</div><div class="actions"><button class="btn danger" onclick="deleteCurrentInbox()">Удалить</button></div></div>
+    <div><h2>Что это?</h2><div class="gtdgrid">
+      <button class="gtdbtn" onclick="classify('next')"><strong>Следующее действие</strong><span>Один конкретный шаг.</span></button>
+      <button class="gtdbtn" onclick="chooseProjectInbox()"><strong>Часть проекта</strong><span>Отнести к проекту.</span></button>
+      <button class="gtdbtn" onclick="classifyWaiting()"><strong>Поручено / ожидаю</strong><span>Передано другому человеку.</span></button>
+      <button class="gtdbtn" onclick="classifyCalendar()"><strong>Календарь</strong><span>Есть конкретная дата.</span></button>
+      <button class="gtdbtn" onclick="classify('someday')"><strong>Когда-нибудь</strong><span>Не сейчас.</span></button>
+      <button class="gtdbtn" onclick="classify('reference')"><strong>Хранилище</strong><span>Информация, а не действие.</span></button>
+    </div></div>
+  </div>`);
+}
+function classify(g){const x=task(currentInbox);if(!x)return;x.gtd=g;save();currentInbox=null;processInbox()}
+function classifyWaiting(){const x=task(currentInbox);if(!x)return;const who=prompt("Кому поручено / кого ждём?","");if(who===null)return;x.gtd="waiting";x.delegatedTo=who.trim();save();currentInbox=null;processInbox()}
+function classifyCalendar(){modal(`<h3>Дата</h3><div class="field"><input id="pickDate" type="date" value="${todayKey()}"></div><div class="actions"><button class="btn" onclick="applyCalendar()">Готово</button><button class="btn ghost" onclick="closeModal()">Отмена</button></div>`)}
+function applyCalendar(){const x=task(currentInbox),d=byId("pickDate").value;if(!x||!d)return;x.gtd="calendar";x.dueDate=d;x.today=d===todayKey();save();closeModal();currentInbox=null;processInbox()}
+function chooseProjectInbox(){
+  modal(`<h3>Проект</h3><select id="projectPick"><option value="">— выбрать —</option>${data.projects.filter(x=>x.status!=="done").map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}</select>
+  <div class="actions"><button class="btn" onclick="applyProjectInbox()">Готово</button><button class="btn secondary" onclick="quickProjectInbox()">+ Новый проект</button><button class="btn ghost" onclick="closeModal()">Отмена</button></div>`);
+}
+function applyProjectInbox(){const x=task(currentInbox),pid=byId("projectPick").value;if(!x||!pid)return alert("Выберите проект.");x.projectId=pid;x.gtd="next";save();closeModal();currentInbox=null;processInbox()}
+function quickProjectInbox(){const name=prompt("Название проекта:");if(!name||!name.trim())return;const p={id:uid(),name:name.trim(),description:"",status:"active"};data.projects.push(p);const x=task(currentInbox);x.projectId=p.id;x.gtd="next";save();closeModal();currentInbox=null;processInbox()}
+function deleteCurrentInbox(){const x=task(currentInbox);if(x&&confirm(`Удалить «${x.title}»?`)){data.tasks=data.tasks.filter(q=>q.id!==x.id);save();currentInbox=null;processInbox()}}
+
+function simpleList(title,a){setApp(`${top(title)}${a.length?`<div class="tasklist">${a.map(taskRow).join("")}</div>`:`<div class="empty">Список пуст.</div>`}`)}
+function allTasks(){
+  setApp(`${top("Все задачи")}<div class="panel" style="margin-bottom:10px"><input id="search" placeholder="Поиск по названию или комментарию"></div><div id="allList" class="tasklist"></div>`);
+  byId("search").addEventListener("input",renderAll);renderAll();
+}
+function renderAll(){
+  const q=byId("search").value.trim().toLowerCase();
+  const a=data.tasks.filter(x=>!x.completed&&(!q||x.title.toLowerCase().includes(q)||(x.comment||"").toLowerCase().includes(q)));
+  byId("allList").innerHTML=a.length?a.map(taskRow).join(""):`<div class="empty">Ничего не найдено.</div>`;
+}
+function taskRow(x){
+  const chips=[];
+  if(x.today||x.dueDate===todayKey())chips.push(`<span class="chip today">Сегодня</span>`);
+  if(x.dueDate)chips.push(`<span class="chip">📅 ${fmt(x.dueDate)}</span>`);
+  if(x.projectId&&project(x.projectId))chips.push(`<span class="chip">Проект: ${esc(project(x.projectId).name)}</span>`);
+  if(x.folderId&&folder(x.folderId))chips.push(`<span class="chip">${esc(folder(x.folderId).name)}</span>`);
+  if(x.gtd==="waiting")chips.push(`<span class="chip wait">Ожидаю${x.delegatedTo?": "+esc(x.delegatedTo):""}</span>`);
+  return `<div class="taskrow" onclick="editTask('${x.id}')"><div class="title">${esc(x.title)}</div>${x.comment?`<div class="comment">${esc(x.comment)}</div>`:""}<div class="meta">${chips.join("")}</div></div>`;
+}
+
+function editTask(id){
+  const x=task(id);if(!x)return;
+  modal(`<h3>Редактирование задачи</h3>
+    <div class="field"><label>Название</label><input id="eTitle" value="${esc(x.title)}"></div>
+    <div class="field"><label>Комментарий</label><textarea id="eComment">${esc(x.comment||"")}</textarea></div>
+    <div class="field"><label>GTD-список</label><select id="eGtd">${["inbox","next","waiting","calendar","someday","reference"].map(g=>`<option value="${g}" ${x.gtd===g?"selected":""}>${gtdLabel(g)}</option>`).join("")}</select></div>
+    <div class="field"><label>Проект</label><select id="eProject"><option value="">Без проекта</option>${data.projects.map(p=>`<option value="${p.id}" ${x.projectId===p.id?"selected":""}>${esc(p.name)}</option>`).join("")}</select></div>
+    <div class="field"><label>Папка / контекст</label><select id="eFolder"><option value="">Без папки</option>${data.folders.map(f=>`<option value="${f.id}" ${x.folderId===f.id?"selected":""}>${esc(f.name)}</option>`).join("")}</select></div>
+    <div class="field"><label>Дата</label><input id="eDate" type="date" value="${x.dueDate||""}"></div>
+    <div class="field"><label>Кому поручено</label><input id="eWho" value="${esc(x.delegatedTo||"")}"></div>
+    <label style="display:flex;gap:9px;align-items:center"><input id="eToday" type="checkbox" style="width:auto" ${x.today?"checked":""}> Сегодня</label>
+    <div class="actions"><button class="btn" onclick="saveTaskEdit('${id}')">Сохранить</button><button class="btn ok" onclick="completeTask('${id}')">Выполнено</button><button class="btn danger" onclick="deleteTask('${id}')">Удалить</button><button class="btn ghost" onclick="closeModal()">Отмена</button></div>`);
+}
+function saveTaskEdit(id){
+  const x=task(id);if(!x)return;
+  x.title=byId("eTitle").value.trim()||x.title;x.comment=byId("eComment").value.trim();x.gtd=byId("eGtd").value;
+  x.projectId=byId("eProject").value||null;x.folderId=byId("eFolder").value||null;x.dueDate=byId("eDate").value;x.delegatedTo=byId("eWho").value.trim();x.today=byId("eToday").checked;
+  save();closeModal();menu();
+}
+function completeTask(id){const x=task(id);if(!x)return;x.completed=true;save();closeModal();menu()}
+function deleteTask(id){const x=task(id);if(x&&confirm(`Удалить «${x.title}»?`)){data.tasks=data.tasks.filter(q=>q.id!==id);save();closeModal();menu()}}
+
+function projectsView(){
+  const a=data.projects.filter(x=>x.status!=="done");
+  setApp(`${top("Проекты","menu",`<button class="btn" onclick="newProject()">+ Проект</button>`)}${a.length?`<div class="projects">${a.map(p=>`<button class="project" onclick="openProject('${p.id}')"><h3>${esc(p.name)}</h3><p>${esc(p.description||"Без описания")}</p><div class="small">${projectTasks(p.id).length} действий</div></button>`).join("")}</div>`:`<div class="empty">Проектов пока нет.</div>`}`);
+}
+function newProject(){modal(`<h3>Новый проект</h3><div class="field"><label>Название</label><input id="pName"></div><div class="field"><label>Описание / желаемый результат</label><textarea id="pDesc"></textarea></div><div class="actions"><button class="btn" onclick="saveProject()">Создать</button><button class="btn ghost" onclick="closeModal()">Отмена</button></div>`)}
+function saveProject(){const name=byId("pName").value.trim();if(!name)return alert("Введите название.");data.projects.push({id:uid(),name,description:byId("pDesc").value.trim(),status:"active"});save();closeModal();projectsView()}
+function openProject(id){
+  const p=project(id),a=projectTasks(id);if(!p)return projectsView();
+  setApp(`<div class="top"><button class="btn secondary" onclick="projectsView()">← Проекты</button><h1>${esc(p.name)}</h1><div class="spacer"></div><button class="btn" onclick="newProjectTask('${id}')">+ Действие</button></div>
+  <div class="panel">${esc(p.description||"Без описания")}<div class="actions"><button class="btn ok" onclick="finishProject('${id}')">Завершить проект</button></div></div>
+  <div class="section"><h2>Действия</h2></div>${a.length?`<div class="tasklist">${a.map(taskRow).join("")}</div>`:`<div class="empty">У проекта нет активных действий.</div>`}`);
+}
+function newProjectTask(id){modal(`<h3>Новое действие</h3><div class="field"><input id="pt" placeholder="Название"></div><div class="field"><textarea id="pc" placeholder="Комментарий"></textarea></div><div class="actions"><button class="btn" onclick="saveProjectTask('${id}')">Добавить</button><button class="btn ghost" onclick="closeModal()">Отмена</button></div>`)}
+function saveProjectTask(id){const title=byId("pt").value.trim();if(!title)return;data.tasks.push({id:uid(),title,comment:byId("pc").value.trim(),folderId:null,projectId:id,gtd:"next",dueDate:"",today:false,delegatedTo:"",completed:false,createdAt:new Date().toISOString()});save();closeModal();openProject(id)}
+function finishProject(id){const p=project(id);if(p&&confirm("Завершить проект?")){p.status="done";save();projectsView()}}
+
+function foldersView(){
+  setApp(`${top("Папки / контексты","menu",`<button class="btn" onclick="newFolder()">+ Папка</button>`)}${data.folders.length?`<div class="folders">${data.folders.map(f=>`<button class="folder" style="--c:${f.color||"#667cff"}" onclick="openFolder('${f.id}')"><div class="bar"></div><strong>${esc(f.name)}</strong><small>${folderTasks(f.id).length} задач</small></button>`).join("")}</div>`:`<div class="empty">Папок пока нет.</div>`}`);
+}
+function newFolder(){modal(`<h3>Новая папка</h3><div class="field"><label>Название</label><input id="fName"></div><div class="field"><label>Описание</label><textarea id="fDesc"></textarea></div><div class="field"><label>Цвет</label><input id="fColor" type="color" value="#667cff" style="height:48px;padding:5px"></div><div class="actions"><button class="btn" onclick="saveFolder()">Создать</button><button class="btn ghost" onclick="closeModal()">Отмена</button></div>`)}
+function saveFolder(){const name=byId("fName").value.trim();if(!name)return alert("Введите название.");data.folders.push({id:uid(),name,description:byId("fDesc").value.trim(),color:byId("fColor").value});save();closeModal();foldersView()}
+function openFolder(id){const f=folder(id),a=folderTasks(id);if(!f)return foldersView();setApp(`<div class="top"><button class="btn secondary" onclick="foldersView()">← Папки</button><h1>${esc(f.name)}</h1></div><div class="panel muted">${esc(f.description||"Без описания")}</div><div class="section"><h2>Задачи</h2></div>${a.length?`<div class="tasklist">${a.map(taskRow).join("")}</div>`:`<div class="empty">В этой папке нет активных задач.</div>`}`)}
+
+function calendarView(){
+  const y=calMonth.getFullYear(),m=calMonth.getMonth(),first=new Date(y,m,1),start=(first.getDay()+6)%7,days=new Date(y,m+1,0).getDate(),prev=new Date(y,m,0).getDate();
+  const cells=[];
+  for(let i=0;i<42;i++){
+    let day=i-start+1,cm=m,cy=y,other=false;
+    if(day<1){day=prev+day;cm--;other=true;if(cm<0){cm=11;cy--}}
+    else if(day>days){day-=days;cm++;other=true;if(cm>11){cm=0;cy++}}
+    const key=dateKey(new Date(cy,cm,day)),cnt=data.tasks.filter(x=>!x.completed&&x.dueDate===key).length;
+    cells.push(`<button class="day ${other?"other":""} ${key===selectedDate?"sel":""} ${key===todayKey()?"today":""}" onclick="selectDay('${key}')"><div>${day}</div><div class="dots">${Array.from({length:Math.min(cnt,5)},()=>'<span class="dot"></span>').join("")}</div></button>`);
+  }
+  const names=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+  const a=data.tasks.filter(x=>!x.completed&&x.dueDate===selectedDate);
+  setApp(`${top("Календарь")}<div class="panel"><div class="calhead"><button class="btn secondary" onclick="shiftMonth(-1)">←</button><h2>${names[m]} ${y}</h2><button class="btn secondary" onclick="shiftMonth(1)">→</button></div><div class="calendar">${["Пн","Вт","Ср","Чт","Пт","Сб","Вс"].map(d=>`<div class="dow">${d}</div>`).join("")}${cells.join("")}</div></div>
+  <div class="section"><h2>${fmt(selectedDate)}</h2><button class="btn" onclick="newCalendarTask('${selectedDate}')">+ Запись</button></div>
+  ${a.length?`<div class="tasklist">${a.map(taskRow).join("")}</div>`:`<div class="empty">На эту дату ничего нет.</div>`}`);
+}
+function shiftMonth(n){calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+n,1);calendarView()}
+function selectDay(d){selectedDate=d;calendarView()}
+function newCalendarTask(d){modal(`<h3>Новая запись</h3><div class="field"><input id="calTitle" placeholder="Название"></div><div class="field"><textarea id="calComment" placeholder="Комментарий"></textarea></div><div class="actions"><button class="btn" onclick="saveCalendarTask('${d}')">Добавить</button><button class="btn ghost" onclick="closeModal()">Отмена</button></div>`)}
+function saveCalendarTask(d){const title=byId("calTitle").value.trim();if(!title)return;data.tasks.push({id:uid(),title,comment:byId("calComment").value.trim(),folderId:null,projectId:null,gtd:"calendar",dueDate:d,today:d===todayKey(),delegatedTo:"",completed:false,createdAt:new Date().toISOString()});save();closeModal();calendarView()}
+
+function backupView(){
+  setApp(`${top("Резервная копия")}<div class="panel"><h3>Экспорт</h3><p class="muted">Сохранит все задачи, проекты и папки.</p><button class="btn" onclick="exportData()">Скачать JSON</button><hr><h3>Импорт</h3><input id="importFile" type="file" accept=".json,application/json"><button class="btn danger" style="margin-top:10px" onclick="importData()">Восстановить из файла</button></div>`);
+}
+function exportData(){const b=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=`task-sorter-backup-${todayKey()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+async function importData(){const file=byId("importFile").files[0];if(!file)return alert("Выберите файл.");try{const x=normalize(JSON.parse(await file.text()));if(confirm("Заменить текущую базу?")){data=x;save();menu()}}catch(e){alert("Не удалось прочитать файл.")}}
+
+function updateOfflineStatus(){
+  const s=byId("offlineStatus");if(!s)return;
+  if(!("serviceWorker" in navigator)){s.textContent="Офлайн-режим недоступен";return}
+  s.textContent=navigator.onLine?"Офлайн-кэш активируется после первого открытия.":"Работает офлайн";
+  if(!navigator.onLine)s.classList.add("offline");
+}
+
+window.addEventListener("load",async()=>{
+  menu();
+  if("serviceWorker" in navigator){
+    try{
+      await navigator.serviceWorker.register("./sw-offline-calc.js");
+      await navigator.serviceWorker.ready;
+      updateOfflineStatus();
+    }catch(e){
+      const s=byId("offlineStatus");
+      if(s)s.textContent="Ошибка офлайн-кэша: "+e.message;
+    }
+  }
+});
+window.addEventListener("online",updateOfflineStatus);
+window.addEventListener("offline",updateOfflineStatus);
+</script>
+</body>
+</html>
